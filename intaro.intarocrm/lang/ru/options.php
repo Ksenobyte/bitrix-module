@@ -1,4 +1,4 @@
-<?php 
+<?php
 $MESS ['ICRM_OPTIONS_GENERAL_TAB'] = 'Общие настройки';
 $MESS ['ICRM_OPTIONS_IMPORT_TAB'] = 'Настройки импората';
 $MESS ['ICRM_CONN_SETTINGS'] = 'Настройка соединения';

@@ -440,7 +440,7 @@ class RestApi
         $result = $this->curlRequest($url);
         return $result;
     }
-    
+
     /**
      * Обновление статистики
      *
