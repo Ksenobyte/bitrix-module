@@ -62,8 +62,6 @@ class ICrmOrderEvent {
      */
     function writeDataOnOrderCreate($ID) {
         
-        ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ok', 'сработало какое то событие');
-        
         if (!CModule::IncludeModule('iblock')) {
             //handle err
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'iblock', 'module not found');
