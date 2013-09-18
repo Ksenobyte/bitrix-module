@@ -68,13 +68,6 @@ class intaro_intarocrm extends CModule {
             }
         }
 
-        if (!date_default_timezone_get()) {
-            if (!ini_get('date.timezone')) {
-                $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
-                return false;
-            }
-        }
-
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
         include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
@@ -876,6 +869,7 @@ class intaro_intarocrm extends CModule {
             }
 
             RegisterModule($this->MODULE_ID);
+            RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {

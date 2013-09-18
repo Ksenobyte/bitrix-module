@@ -58,9 +58,8 @@ $defaultOrderProps = array(
             </tr>
             <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
             <tr class="heading">
-                <td colspan="2"><b><?php echo $bitrixOrderType['NAME']; ?></b></td>
+                <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
             </tr>
-    
             <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
             <?php if($orderProp['ID'] == 'text'): ?>
             <tr class="heading">
@@ -81,7 +80,7 @@ $defaultOrderProps = array(
                 <option value=""></option>              
                 <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($defaultOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
-                    <?php echo $arProp['NAME']; ?>
+                    <?php echo $APPLICATION->ConvertCharset($arProp['NAME'], 'utf-8', SITE_CHARSET); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
