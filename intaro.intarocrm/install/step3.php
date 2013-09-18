@@ -63,7 +63,7 @@ $defaultOrderProps = array(
             <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
             <?php if($orderProp['ID'] == 'text'): ?>
             <tr class="heading">
-                <td colspan="2">
+                <td colspan="2" style="background-color: transparent;">
                     <b>
                         <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($defaultOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
                         <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($defaultOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
