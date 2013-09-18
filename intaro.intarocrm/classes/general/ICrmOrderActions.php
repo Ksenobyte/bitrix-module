@@ -200,7 +200,7 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
         $orderHistory = $api->orderHistory();
-        
+
         // pushing existing orders
         foreach ($orderHistory as $order) {
             
@@ -249,7 +249,9 @@ class ICrmOrderActions
                 if(isset($order['customer']) && $order['customer']) $userId = $order['customer'];
                 $LID = $arFields['LID'];
                 
+                
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
+                
                 while ($ar = $rsOrderProps->Fetch()) {
                     if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
                         switch ($ar['CODE']) {
@@ -403,24 +405,26 @@ class ICrmOrderActions
                     
                     CSaleBasket::Update($p['ID'], $arProduct);
                 }*/ 
-                
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
-                    'PRICE_DELIVERY' => $order['deliveryCost'],
-                    'PRICE'          => $order['summ'],
-                    'DATE_MARKED'    => $order['markDatetime'],
-                    'USER_ID'        => $userId, //$order['customer']
-                    'PAY_SYSTEM_ID'  => $optionsPayTypes[$order['paymentType']],
-                    'PAYED'          => $optionsPayment[$order['paymentStatus']],
+                    'PRICE_DELIVERY'   => $order['deliveryCost'],
+                    'PRICE'            => $order['summ'],
+                    'DATE_MARKED'      => $order['markDatetime'],
+                    'USER_ID'          => $userId, //$order['customer']
+                    'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
+                    'PAYED'            => $optionsPayment[$order['paymentStatus']],
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
-                    'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
-                    'STATUS_ID'      => $optionsPayStatuses[$order['status']]
+                    'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
+                    'STATUS_ID'        => $optionsPayStatuses[$order['status']],
+                    'REASON_CANCELED'  => $order['statusComment'],
+                    'USER_DESCRIPTION' => $order['customerComment'],
+                    'COMMENTS'         => $order['managerComment']
                 ));
                 
-                $GLOBALS[' INTARO_CRM_FROM_HISTORY'] = true;
+                $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
                 CSaleOrder::Update($order['externalId'], $arFields);
-
             } 
         } 
         

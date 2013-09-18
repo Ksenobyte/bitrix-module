@@ -73,7 +73,7 @@ $defaultOrderProps = array(
             <?php endif; ?>
             <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
-                    <?php echo $orderProp['NAME']; ?>
+                    <?php echo $APPLICATION->ConvertCharset($orderProp['NAME'], 'utf-8', SITE_CHARSET);; ?>
                 </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">

@@ -37,7 +37,7 @@ class ICrmOrderEvent {
         
         if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
             return;
-        
+        ICrmOrderActions::eventLog('ICrmOrderEvent::ouUpdateOrder', 'ICrmOrderActions::orderCreate', 'сработало');
         self::writeDataOnOrderCreate($ID);
     }
     

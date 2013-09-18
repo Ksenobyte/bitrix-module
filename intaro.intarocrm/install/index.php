@@ -690,7 +690,7 @@ class intaro_intarocrm extends CModule {
             //form orderProps
             $dbProp = CSaleOrderProps::GetList(array(), array());
             while ($arProp = $dbProp->GetNext()) {
-                $arResult['arProp'][$arProp['PERSON_TYPE_ID']] = $arProp;
+                $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
