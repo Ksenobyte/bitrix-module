@@ -1,4 +1,7 @@
 <?php
+$mid = 'intaro.intarocrm';
+$CRM_ORDER_PROPS = 'order_props';
+
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php')) {
     unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
 }
@@ -22,3 +25,25 @@ CAgent::AddAgent(
         $dateAgent->format('d.m.Y H:i:s'), // date of first start
         30
 );
+
+$defaultOrderProps = array(
+    1 => array(
+        'fio' => 'FIO',
+        'index' => 'ZIP',
+        'text' => 'ADDRESS',
+        'phone' => 'PHONE',
+        'email' => 'EMAIL'
+    ),
+    2 => array(
+        'fio' => 'FIO',
+        'index' => 'ZIP',
+        'text' => 'ADDRESS',
+        'phone' => 'PHONE',
+        'email' => 'EMAIL'
+    )
+);
+
+COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize($defaultOrderProps));
+UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
+UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
