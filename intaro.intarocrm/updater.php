@@ -1,6 +1,7 @@
 <?php
 $mid = 'intaro.intarocrm';
 $CRM_ORDER_PROPS = 'order_props';
+$CRM_ORDER_FAILED_IDS = 'order_failed_ids';
 
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php')) {
     unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
@@ -44,6 +45,7 @@ $defaultOrderProps = array(
 );
 
 COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize($defaultOrderProps));
+COption::SetOptionString($mid, $CRM_ORDER_FAILED_IDS, serialize(array()));
 UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+UnRegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmBeforeOrderEvent", "onUpdateOrder");
 UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
