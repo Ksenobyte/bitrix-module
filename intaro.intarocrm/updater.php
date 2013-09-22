@@ -47,5 +47,5 @@ $defaultOrderProps = array(
 COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize($defaultOrderProps));
 COption::SetOptionString($mid, $CRM_ORDER_FAILED_IDS, serialize(array()));
 UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-UnRegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmBeforeOrderEvent", "onUpdateOrder");
+UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
 UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
