@@ -76,8 +76,6 @@ class ICrmOrderEvent {
      */
     function writeDataOnOrderCreate($ID, $arFields) {
         
-        ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'onOrderUpdate', json_encode($arFields));
-        
         if (!CModule::IncludeModule('iblock')) {
             //handle err
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'iblock', 'module not found');
