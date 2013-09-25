@@ -249,7 +249,7 @@ class ICrmOrderActions
     
     /**
      * 
-     * History update; doesnt work; always returns true, but writes log of errors
+     * History update
      * @global CUser $USER
      * @return boolean
      */
@@ -712,46 +712,46 @@ class ICrmOrderActions
         $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
         while ($ar = $rsOrderProps->Fetch()) {
             switch ($ar['CODE']) {
-                case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
                     break;
                 case 'CITY': $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
                     break;
-                case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
                 case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
                         $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
                         $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
                     }
                     break;
-                case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio']: $contactNameArr = self::explodeFIO($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['fio']: $contactNameArr = self::explodeFIO($ar['VALUE']);
                     break;
-                case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone']: $resOrder['phone'] = $ar['VALUE'];
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['phone']: $resOrder['phone'] = $ar['VALUE'];
                     break;
-                case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['email']: $resOrder['email'] = $ar['VALUE'];
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['email']: $resOrder['email'] = $ar['VALUE'];
                     break;
             }
             
-            if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']] > 4)) {
+            if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']] > 4)) {
                 switch ($ar['CODE']) {
-                    /*case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
+                    /*case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
                         break; */
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['intercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['intercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
                         break;
                 }
             }
