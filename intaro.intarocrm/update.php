@@ -92,18 +92,24 @@ while ($arProfile = $dbProfile->Fetch())
 }
 
 function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename) {
+        // Get string like IBLOCK_EXPORT[0]=3&
+        // IBLOCK_EXPORT[1]=6&
+        // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
+        // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
+        // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
 
-    $strVars = "";
-    foreach ($iblocks as $key => $val) 
-        $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
-    foreach ($propertiesSKU as $iblock => $arr) 
-        foreach ($arr as $id => $val)
-            $strVars .= 'IBLOCK_PROPERTY_SKU[' . $iblock . '][' . $id . ']=' . $val . '&';
-    foreach ($propertiesProduct as $iblock => $arr) 
-        foreach ($arr as $id => $val)
-            $strVars .= 'IBLOCK_PROPERTY_PRODUCT[' . $iblock . '][' . $id . ']=' . $val . '&';
-
-    $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
-
-    return $strVars;
-}
+        //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
+        $strVars = "";
+        foreach ($iblocks as $key => $val) 
+            $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
+        foreach ($propertiesSKU as $iblock => $arr) 
+            foreach ($arr as $id => $val)
+                $strVars .= 'IBLOCK_PROPERTY_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
+        foreach ($propertiesProduct as $iblock => $arr) 
+            foreach ($arr as $id => $val)
+                $strVars .= 'IBLOCK_PROPERTY_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
+        
+        $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
+        
+        return $strVars;
+    }
