@@ -2,8 +2,8 @@
 
 /**
  * Module Install/Uninstall script
- * Module name:	intaro.intarocrm
- * Class name:	intaro_intarocrm
+ * Module name: intaro.intarocrm
+ * Class name:  intaro_intarocrm
  */
 global $MESS;
 IncludeModuleLangFile(__FILE__);
@@ -278,7 +278,7 @@ class intaro_intarocrm extends CModule {
                 );
 
                 //form payment statuses ids arr
-                $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
+                $paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
                 if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                     do {
                         $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
@@ -287,7 +287,7 @@ class intaro_intarocrm extends CModule {
                 }
 
                 $arResult['bitrixPaymentStatusesList'][] = array(
-                    'ID' => 'Y',
+                    'ID' => 'YY',
                     'NAME' => GetMessage('CANCELED')
                 );
 
@@ -301,6 +301,7 @@ class intaro_intarocrm extends CModule {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 
                 // generate updated select inputs  
                 $input = array();
@@ -441,6 +442,7 @@ class intaro_intarocrm extends CModule {
 
             // form correct url
             $api_host = parse_url($api_host);
+            if($api_host['scheme'] != 'https') $api_host['scheme'] = 'https';
             $api_host = $api_host['scheme'] . '://' . $api_host['host'];
 
             if (!$api_host || !$api_key) {
@@ -545,7 +547,7 @@ class intaro_intarocrm extends CModule {
             }
 
             $arResult['bitrixPaymentStatusesList'][] = array(
-                'ID' => 'Y',
+                'ID' => 'YY',
                 'NAME' => GetMessage('CANCELED')
             );
 
@@ -676,7 +678,7 @@ class intaro_intarocrm extends CModule {
             );
 
             //form payment statuses ids arr
-            $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
+            $paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
 
             if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                 do {
@@ -703,7 +705,6 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -915,15 +916,15 @@ class intaro_intarocrm extends CModule {
                 }
                 $ar = $this->GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename);
                 $PROFILE_ID = CCatalogExport::Add(array(
-                    "LAST_USE"		=> false,
-                    "FILE_NAME"		=> $this->INTARO_CRM_EXPORT,
-                    "NAME"		=> $profileName,
+                    "LAST_USE"      => false,
+                    "FILE_NAME"     => $this->INTARO_CRM_EXPORT,
+                    "NAME"      => $profileName,
                     "DEFAULT_PROFILE"   => "N",
-                    "IN_MENU"		=> "N",
-                    "IN_AGENT"		=> "N",
-                    "IN_CRON"		=> "N",
-                    "NEED_EDIT"		=> "N",
-                    "SETUP_VARS"	=> $ar
+                    "IN_MENU"       => "N",
+                    "IN_AGENT"      => "N",
+                    "IN_CRON"       => "N",
+                    "NEED_EDIT"     => "N",
+                    "SETUP_VARS"    => $ar
                     ));
                 if (intval($PROFILE_ID) <= 0) {
                     $arResult['errCode'] = 'ERR_IBLOCK';
@@ -936,7 +937,7 @@ class intaro_intarocrm extends CModule {
                     $dateAgent->add($intAgent);
                     CAgent::AddAgent(
                             "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                            "Y", // агент активен
+                            "Y", // àãåíò àêòèâåí
                             $dateAgent->format('d.m.Y H:i:s'), // date of first start
                             30
                     );
@@ -1008,7 +1009,7 @@ class intaro_intarocrm extends CModule {
             CAgent::AddAgent(
                     "ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                    "Y", // агент активен
+                    "Y", // agent is active
                     $dateAgent->format('d.m.Y H:i:s'), // date of first start
                     30
             );
@@ -1019,7 +1020,7 @@ class intaro_intarocrm extends CModule {
                  "N",
                  600, // interval - 10 mins
                  $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                 "Y", // агент активен
+                 "Y", // agent is active
                  $dateAgent->format('d.m.Y H:i:s'), // date of first start
                  30
             );
