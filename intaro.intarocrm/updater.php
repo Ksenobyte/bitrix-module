@@ -13,3 +13,5 @@ if(isset($optionsPayStatuses['Y'])) {
 }
 
 COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($optionsPayStatuses));
+
+RegisterModuleDependences("sale", "OnBeforeOrderAccountNumberSet", $mid, "ICrmOrderEvent", "onBeforeOrderAccountNumberSet");
