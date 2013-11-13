@@ -605,6 +605,9 @@ class ICrmOrderActions
                 if(!isset($order['deliveryCost']))
                     $order['deliveryCost'] = $arFields['PRICE_DELIVERY'];
 
+                if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ'])) 
+                    $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];                      
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
