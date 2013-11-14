@@ -904,8 +904,6 @@ class ICrmOrderActions
        
         $resOrder = self::clearArr($resOrder);
 
-        self::eventLog('ICrmOrderActions::orderCreate', 'test', json_encode($arOrder));
-
         if($send)
             return $api->orderEdit($resOrder);
         
