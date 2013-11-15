@@ -553,7 +553,8 @@ class ICrmOrderActions
                             'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
                             'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
                             'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
-                            'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID']
+                            'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID'],
+                            'CUSTOM_PRICE'           => 'Y'
                         );
 
                         if (isset($item['initialPrice']) && $item['initialPrice'])
