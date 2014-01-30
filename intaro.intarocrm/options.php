@@ -92,6 +92,71 @@ $arResult['orderProps'] = array(
     )
 );
 
+//ajax update deliveryServices
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
+    $result = array();
+
+    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+
+    $api = new IntaroCrm\RestApi($api_host, $api_key);
+
+    $api->paymentStatusesList();
+
+    //check connection & apiKey valid
+    if ((int) $api->getStatusCode() != 200) {
+        $APPLICATION->RestartBuffer();
+        header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+        die(json_encode(array('success' => false, 'errMsg' => $api->getStatusCode())));
+    }
+
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+
+    // bitrix deliveryServicesList
+    $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+        array(
+            'SORT' => 'ASC',
+            'NAME' => 'ASC'
+        ),
+        array(
+            'ACTIVE' => 'Y'
+        )
+    );
+
+    if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+        do {
+
+            if(!$optionsDelivTypes[$arDeliveryServicesList['SID']]) {
+                ICrmOrderActions::eventLog('options.php', 'No delivery type relations established', $arDeliveryServicesList['SID'] . ':' . $id);
+                continue;
+            }
+
+            foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+
+                // send to crm
+                $api->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
+                    'code' => $arDeliveryServicesList['SID'] . '-' . $id,
+                    'name' => ICrmOrderActions::toJSON($profile['TITLE']),
+                    'deliveryType' => $arDeliveryServicesList['SID']
+                )));
+
+                // error pushing dt
+                if ($api->getStatusCode() != 200) {
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        ICrmOrderActions::eventLog('options.php', 'IntaroCrm\RestApi::deliveryServiceEdit', $api->getLastError());
+                    }
+                }
+            }
+
+        } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
+    }
+
+    $APPLICATION->RestartBuffer();
+    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+    die(json_encode(array('success' => true)));
+}
+
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
@@ -455,10 +520,42 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 $('tr.address-detail-' + orderType).hide('slow');
             });
      });
+
+    $('input[name="update-delivery-services"]').live('click', function() {
+        BX.showWait();
+        var updButton = this;
+        // hide next step button
+        $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
+
+        var handlerUrl = $(this).parents('form').attr('action');
+        var data = 'ajax=1';
+
+        $.ajax({
+            type: 'POST',
+            url: handlerUrl,
+            data: data,
+            dataType: 'json',
+            success: function(response) {
+                BX.closeWait();
+                $(updButton).css('opacity', '1').removeAttr('disabled');
+
+                if(!response.success)
+                    alert('<?php echo GetMessage('MESS_1'); ?>');
+            },
+            error: function () {
+                BX.closeWait();
+                $(updButton).css('opacity', '1').removeAttr('disabled');
+
+                alert('<?php echo GetMessage('MESS_2'); ?>');
+            }
+        });
+
+        return false;
+    });
 </script>
 
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
-<?php 
+<?php
     echo bitrix_sessid_post();
     $tabControl->BeginNextTab();
 ?>
@@ -509,6 +606,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endforeach; ?>
+    <tr class="heading">
+        <td colspan="2">
+            <input type="submit" name="update-delivery-services" value="<?php echo GetMessage('UPDATE_DELIVERY_SERVICES'); ?>" class="adm-btn-save">
+        </td>
+    </tr>
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
     </tr>
