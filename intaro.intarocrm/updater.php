@@ -3,13 +3,14 @@ $mid = 'intaro.intarocrm';
 $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
 
 if (!CModule::IncludeModule("catalog")) return;
+if (!CModule::IncludeModule("intaro.intarocrm")) return;
 
 // clear old agents
 CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $mid);
 CAgent::RemoveAgent("ICrmOrderActions::orderHistoryAgent();", $mid);
 
 // set catalog base price
-dbPriceType = CCatalogGroup::GetList(
+$dbPriceType = CCatalogGroup::GetList(
     array("SORT" => "ASC"), array("BASE" => "Y"), array(), array(), array("ID", "NAME", "BASE")
 );
 
@@ -23,6 +24,10 @@ RegisterModuleDependences("sale", "OnSaleBeforeReserveOrder", $mid, "ICrmOrderEv
 RegisterModuleDependences("sale", "OnSaleReserveOrder", $mid, "ICrmOrderEvent", "onSaleReserveOrder");
 
 // set orderAgent
+$dateAgent = new DateTime();
+$intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
+$dateAgent->add($intAgent);
+
 CAgent::AddAgent(
     "ICrmOrderActions::orderAgent();", $mid, "N", 600, // interval - 10 mins
     $dateAgent->format('d.m.Y H:i:s'), // date of first check
