@@ -30,4 +30,4 @@ COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize(ICrmOrderActions::c
 COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($optionsPayStatuses)));
 COption::SetOptionString($mid, $CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($optionsPayment)));
 COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize(ICrmOrderActions::clearArr($optionsSites)));
-COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));
+COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($optionsOrderProps)));
