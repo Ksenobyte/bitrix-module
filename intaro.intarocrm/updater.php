@@ -33,7 +33,7 @@ $apiHostArr = explode('.', $api_host['host']);
 
 if(isset($apiHostArr[1]) && $apiHostArr[1] == 'intarocrm') {
 	$apiHostArr[1] = 'retailcrm';
-	$api_host['host'] = implode('.', $api_host['host']);
+	$api_host['host'] = implode('.', $apiHostArr);
 	$api_host = $api_host['scheme'] . '://' . $api_host['host'];	
 
 	COption::SetOptionString($mid, $CRM_API_HOST_OPTION, $api_host);
