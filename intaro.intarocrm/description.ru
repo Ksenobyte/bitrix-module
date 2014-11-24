@@ -1,3 +1,3 @@
 * Исправлена возможная поломка сессии при срабатывания агента orderAgent на хите.
 * Исправлено возможное пересечение символьных кодов обычных полей и свойств при выгрузке каталога.
-* Добавлены новые событие intarocrm_order_pre_persist и intarocrm_order_post_persist.
+* Добавлены новые события intarocrm_order_pre_persist и intarocrm_order_post_persist.
