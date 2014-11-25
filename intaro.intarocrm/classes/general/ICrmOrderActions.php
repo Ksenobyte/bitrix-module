@@ -1075,10 +1075,10 @@ class ICrmOrderActions
      * @return self name
      */
 
-    public static function orderAgent() {
+    public static function notForkedOrderAgent() {
         self::uploadOrdersAgent();
         self::orderHistory();
-        return 'ICrmOrderActions::orderAgent();';
+        return 'ICrmOrderActions::notForkedOrderAgent();';
     }
 
     /**
@@ -1088,7 +1088,7 @@ class ICrmOrderActions
      * @return self name
      */
 
-    public static function forkedOrderAgent() {
+    public static function orderAgent() {
         if(self::isForkable()) {
             $ch = curl_init();
             curl_setopt($ch,CURLOPT_URL,
@@ -1100,10 +1100,10 @@ class ICrmOrderActions
             curl_exec($ch);
             curl_close($ch);
         } else {
-            self::orderAgent();
+            self::notForkedOrderAgent();
         }
 
-        return 'ICrmOrderActions::forkedOrderAgent();';
+        return 'ICrmOrderActions::orderAgent();';
     }
 
     /**
