@@ -4,10 +4,17 @@ $CRM_API_HOST_OPTION = 'api_host';
 
 if (!CModule::IncludeModule("intaro.intarocrm")) return;
 // copy new files
-if(mkdir($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/')) {
+$rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+$defaultSite = array();
+while ($ar = $rsSites->Fetch()) {
+	$defaultSite = $ar;
+	break;
+}
+
+if(mkdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/')) {
 	CopyDirFiles(
-		$_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $mid . '/install/retailcrm/', $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/', true, true
-        );
+		$defaultSite['ABS_DOC_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/retailcrm/', $defaultSite['ABS_DOC_ROOT'] . '/retailcrm/', true, true
+	);
 }
 
 $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
