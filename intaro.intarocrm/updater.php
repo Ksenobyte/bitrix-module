@@ -13,7 +13,7 @@ while ($ar = $rsSites->Fetch()) {
 
 if(mkdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/')) {
 	CopyDirFiles(
-		$defaultSite['ABS_DOC_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/retailcrm/', $defaultSite['ABS_DOC_ROOT'] . '/retailcrm/', true, true
+		$defaultSite['ABS_DOC_ROOT'] . '/bitrix/modules/' . $mid . '/install/retailcrm/', $defaultSite['ABS_DOC_ROOT'] . '/retailcrm/', true, true
 	);
 }
 
