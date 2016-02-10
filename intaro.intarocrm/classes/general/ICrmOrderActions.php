@@ -23,7 +23,8 @@ else{
         protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
         protected static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
         protected static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-        
+        protected static $CRM_APPROVED_ORDERS = 'approved_orders';
+
         const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
         /**
@@ -1064,7 +1065,6 @@ else{
 
             self::uploadOrdersAgent();
             self::orderHistory();
-
             return 'ICrmOrderActions::orderAgent();';
         }
 
@@ -1175,6 +1175,97 @@ else{
                     }
                     return $result;
             }        
+        }
+
+        /**
+          *
+          * Agent function
+          *
+          * @return self name
+          */
+
+        public static function uploadApprovedReviewsAgent() {
+            $oRes = COption::GetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, "");
+            if($oRes != "") {
+                $oArray = unserialize($oRes);
+                $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+                $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+                $res = array();
+                $groupArray = array();
+                $counter = 0;
+                for($i=0; $i<count($oArray); $i++) {
+                    if(!isset($oArray[$i]['GROUP'])) {
+                        $oArray[$i]['GROUP'] = 0;
+                        $flag = 0;
+                        for($j=0; $j<count($oArray); $j++) {
+                            if( $oArray[$i]['USER_ID'] == $oArray[$j]['USER_ID'] && $i!=$j) {
+                                if(!$flag) {
+                                  $counter++;
+                                  $flag = 1;
+                                }
+                                $oArray[$i]['GROUP'] = $counter;
+                                $oArray[$j]['GROUP'] = $counter;
+
+                                if(!isset($groupArray[$counter])) {
+                                    $groupArray[$counter]['ITEMS'] = $oArray[$i]['ELEMENT_ID'] . "," . $oArray[$j]['ELEMENT_ID'];
+                                    $groupArray[$counter]['DISCOUNT'] = $oArray[$i]['DATA']['reviewDiscount'] . "," . $oArray[$i]['DATA']['reviewDiscount'];
+                                } else {
+                                    $groupArray[$counter]['ITEMS'] .= "," . $oArray[$j]['ELEMENT_ID'];
+                                    $groupArray[$counter]['DISCOUNT'] .= "," . $oArray[$j]['DATA']['reviewDiscount'];
+                                }
+                            }
+                        }
+                    }
+                    if($flag) {
+                        $res[$oArray[$i]['GROUP']][] = $oArray[$i];
+                    } else {
+                        $res[0][] = $oArray[$i];
+                    }
+                }
+                $api = new RetailCrm\RestApi($api_host, $api_key);
+
+               foreach( $res as $group) {
+                    $flag = 0;
+                    foreach ($group as $key) {
+                        $dataEnding = array(
+                            'reviewApproved' => 2,
+                            'mailBlock' => ($key['GROUP'] ? 1 : 0)
+                        );
+                        $data = $key['DATA'] + $dataEnding;
+                        $order = array(
+                            'externalId' => $key['ORDER_ID'],
+                            'customFields' => $data        
+                        );
+
+                        try {
+                            $api->orderEdit($order);
+                        } catch (\RetailCrm\Exception\CurlException $e) {
+                            throw new \RetailCrm\Exception\DispatchInterruptException();
+                        }
+
+                        $customer = array(
+                            'externalId' => $key['USER_ID'],
+                            'customFields' => array(
+                                'reviewDate' => time()
+                            )
+                        );
+                        if ($key['GROUP'] && !$flag) {
+                            $customer['customFields']['approveLinks'] = $groupArray[$key['GROUP']]['ITEMS'];
+                            $customer['customFields']['approveDiscount'] = $groupArray[$key['GROUP']]['DISCOUNT'];
+                        }
+                        
+                        try {
+                            $api->customerEdit($customer);
+                        } catch (\RetailCrm\Exception\CurlException $e) {
+                            throw new \RetailCrm\Exception\DispatchInterruptException();
+                        }
+                        $flag = 1;
+                    }
+                }
+                COption::SetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, "");
+            }
+            return 'ICrmOrderActions::uploadApprovedReviewsAgent();';
         }
     }
 

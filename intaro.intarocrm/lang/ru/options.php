@@ -66,3 +66,8 @@ $MESS ['MESS_2'] = 'Произошла ошибка сервера, обрати
 $MESS ['ORDER_TYPES_LIST_CUSTOM'] = 'Внимание! Используется не стандартное соответвие типов заказов.';
 $MESS ['ORDER_UPL_START'] = 'Начать выгрузку';
 
+$MESS ['ICRM_OPTIONS_DISCOUNT_TAB'] = 'Настройка скидок по отзывам';
+$MESS ['DISCOUNT_HEADER'] = 'Скидки по отзывам';
+$MESS ['DISCOUNT_TEXT'] = 'Текстовый отзыв';
+$MESS ['DISCOUNT_PHOTO'] = 'Фото-отзыв';
+$MESS ['DISCOUNT_VIDEO'] = 'Видео-отзыв';

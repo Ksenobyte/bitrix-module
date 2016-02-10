@@ -19,6 +19,11 @@ class ICrmOrderEvent {
     protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     protected static $CRM_SITES_LIST = 'sites_list';
+    protected static $CRM_APPROVED_ORDERS = 'approved_orders';
+    protected static $CRM_DISCOUNT_TEXT = 'discount_text';
+    protected static $CRM_DISCOUNT_PHOTO = 'discount_photo';
+    protected static $CRM_DISCOUNT_VIDEO = 'discount_video';
+
     
     /**
      * onBeforeOrderAdd
@@ -336,5 +341,182 @@ class ICrmOrderEvent {
             return $GLOBALS['ICRM_ACCOUNT_NUMBER'];
 
         return false;
+    }
+
+    /**
+    * 
+    * @param type $discountType -- type of discount
+    * @return integer
+    */
+    protected function getReviewDiscount($discountType) {
+        if ( empty($discountType) || !( $discountType == self::$CRM_DISCOUNT_TEXT || $discountType == self::$CRM_DISCOUNT_PHOTO || $discountType == self::$CRM_DISCOUNT_VIDEO) ) {
+            throw new \RetailCrm\Exception\WrongParamException('discountType');
+        } else {
+            return COption::GetOptionString(self::$MODULE_ID, $discountType, 0);
+        }
+        return 0;
+    }
+
+    protected function getProductOffers($product_id) {
+        CModule::IncludeModule('iblock');
+        CModule::IncludeModule('catalog');
+
+        $result = array($product_id);
+        $iblock_info = CCatalogSKU::GetInfoByProductIBlock(2);
+
+        $dbOffers = CIBlockElement::GetList(
+            array('ID' => 'DESC'),
+            array('PROPERTY_' . $iblock_info['SKU_PROPERTY_ID'] => $product_id),
+            false,
+            false,
+            array('ID')
+        );
+
+        while ($dbOffer = $dbOffers->Fetch()) {
+            $result[] = $dbOffer['ID'];
+        }
+
+        return $result;
+    }
+
+    /**
+    * 
+    * 
+    * 
+    * 
+    * @return boolean
+    */
+    public function onBeforeCommentUpdate($userId, $productId, $data, $orderId=null) {
+        if( empty($userId) || $userId<1 ) {
+            throw new \RetailCrm\Exception\WrongParamException('userId');
+            return true;
+        } elseif( $orderId<1 && $orderId != null ) {
+            throw new \RetailCrm\Exception\WrongParamException('orderId');
+            return true;
+        } elseif( empty($productId) || $productId<1 ) {
+            throw new \RetailCrm\Exception\WrongParamException('productId');
+            return true;
+        } elseif( empty($data) || !is_array($data) ) {
+            throw new \RetailCrm\Exception\WrongParamException('data');
+            return true;
+        } elseif( !(
+                    isset($data['reviewText']) && 
+                    isset($data['reviewMark']) && 
+                    isset($data['reviewType'])
+                   ) ) {
+            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
+            return true;
+        } else {
+            if ($orderId == null) {
+                $arOrder = array('ID' => 'DESC');
+                $dbOrders = CSaleOrder::GetList(
+                    $arOrder,
+                    array('USER_ID' => $userId),
+                    false,
+                    false,
+                    array('ID')
+                );
+
+                while ($order = $dbOrders->Fetch()) {
+                    $order_ids[] = $order['ID'];
+                }
+
+                $basket = CSaleBasket::GetList(
+                    $arOrder,
+                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
+                    false,
+                    false,
+                    array('PRODUCT_ID', 'ORDER_ID')
+                )->Fetch();
+
+                if ( $basket ) {
+                    $orderId = $basket['ORDER_ID'];
+                } else {
+                    throw new \RetailCrm\Exception\WrongParamException('orderId','search');
+                    return true;
+                }
+            }
+            $query_result = COption::GetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, "");
+            if($query_result != "") {
+                $order_array = unserialize($query_result);
+            } else {
+                $order_array = array();
+            }
+            $data['reviewDiscount'] = self::getReviewDiscount('discount_' . $data['reviewType']);
+            unset($data['reviewType']);
+            $order_array[] = array('USER_ID' => $userId, 'ORDER_ID' => $orderId, 'ELEMENT_ID' => $productId, 'DATA' => $data);
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, serialize($order_array));
+
+        }
+        return true;
+    }
+
+    public function onCommentAdd($userId, $productId, $data, $orderId = null) {
+        if( empty($userId) || $userId<1 ) {
+            throw new \RetailCrm\Exception\WrongParamException('userId');
+            return true;
+        } elseif( empty($productId) || $productId<1 ) {
+            throw new \RetailCrm\Exception\WrongParamException('productId');
+            return true;
+        } elseif( $orderId<1 && orderId != null) {
+            throw new \RetailCrm\Exception\WrongParamException('orderId');
+            return true;
+        } elseif( empty($data) || !is_array($data) ) {
+            throw new \RetailCrm\Exception\WrongParamException('data');
+            return true;
+        } elseif( !isset($data['reviewType']) ) {
+            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
+            return true;
+        } else {
+            if ($orderId == null) {
+                $arOrder = array('ID' => 'DESC');
+                $dbOrders = CSaleOrder::GetList(
+                    $arOrder,
+                    array('USER_ID' => $userId),
+                    false,
+                    false,
+                    array('ID')
+                );
+
+                while ($order = $dbOrders->Fetch()) {
+                    $order_ids[] = $order['ID'];
+                }
+
+                $basket = CSaleBasket::GetList(
+                    $arOrder,
+                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
+                    false,
+                    false,
+                    array('PRODUCT_ID', 'ORDER_ID')
+                )->Fetch();
+
+                if ( $basket ) {
+                    $orderId = $basket['ORDER_ID'];
+                } else {
+                    throw new \RetailCrm\Exception\WrongParamException('orderId','search');
+                    return true;
+                }
+            }
+
+            $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+            $api = new RetailCrm\RestApi($api_host, $api_key);
+            $data['reviewProductId'] = self::getProductOffers($productId);
+            $data['reviewDiscount'] = self::getReviewDiscount('discount_' . $data['reviewType']);
+            unset($data['reviewType']);
+            $data['reviewApproved'] = 1;
+            $order = array(
+                'externalId'    => $orderId,
+                'customFields' => $data
+            );
+
+            try {
+                $api->orderEdit($order);
+            } catch (\RetailCrm\Exception\CurlException $e) {
+                throw new \RetailCrm\Exception\DispatchInterruptException();
+            }
+        }
+    return true;
     }
 }

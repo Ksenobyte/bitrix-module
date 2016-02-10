@@ -19,6 +19,9 @@ $CRM_LEGAL_DETAILS = 'legal_details';
 $CRM_CUSTOM_FIELDS = 'custom_fields';
 $CRM_CONTRAGENT_TYPE = 'contragent_type';
 $CRM_SITES_LIST= 'sites_list';
+$CRM_DISCOUNT_TEXT = 'discount_text';
+$CRM_DISCOUNT_PHOTO = 'discount_photo';
+$CRM_DISCOUNT_VIDEO = 'discount_video';
 
 if(!CModule::IncludeModule('intaro.intarocrm') 
         || !CModule::IncludeModule('sale'))
@@ -227,6 +230,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         COption::SetOptionString($mid, 'api_key', $api_key);
     }
     
+    //discounts for reviews
+    $discount_text = htmlspecialchars(trim($_POST[$CRM_DISCOUNT_TEXT]));
+    $discount_photo = htmlspecialchars(trim($_POST[$CRM_DISCOUNT_PHOTO]));
+    $discount_video = htmlspecialchars(trim($_POST[$CRM_DISCOUNT_VIDEO]));
+
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
         array(
@@ -408,6 +416,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_CONTRAGENT_TYPE, serialize(ICrmOrderActions::clearArr($contragentTypeArr)));    
     COption::SetOptionString($mid, $CRM_LEGAL_DETAILS, serialize(ICrmOrderActions::clearArr($legalDetailsArr)));
     COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(ICrmOrderActions::clearArr($customFieldsArr)));
+    COption::SetOptionString($mid, $CRM_DISCOUNT_TEXT, $discount_text);
+    COption::SetOptionString($mid, $CRM_DISCOUNT_PHOTO, $discount_photo);
+    COption::SetOptionString($mid, $CRM_DISCOUNT_VIDEO, $discount_video);
+
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -560,6 +572,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));    
     $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
+    $discount_text = COption::GetOptionString($mid, $CRM_DISCOUNT_TEXT, 0);
+    $discount_photo = COption::GetOptionString($mid, $CRM_DISCOUNT_PHOTO, 0);
+    $discount_video = COption::GetOptionString($mid, $CRM_DISCOUNT_VIDEO, 0);
 
     $isCustomOrderType = function_exists('intarocrm_set_order_type') || function_exists('intarocrm_get_order_type');
 
@@ -587,6 +602,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             "TAB" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_TAB'),
             "ICON" => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
+        ),
+        array(
+            "DIV" => "edit5",
+            "TAB" => GetMessage('ICRM_OPTIONS_DISCOUNT_TAB'),
+            "ICON" => '',
+            "TITLE" => GetMessage('ICRM_OPTIONS_DISCOUNT_CAPTION')
         )
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
@@ -934,6 +955,23 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
+<?php $tabControl->BeginNextTab(); ?>
+    <input type="hidden" name="tab" value="catalog">
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('DISCOUNT_HEADER'); ?></b></td>
+    </tr>    
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('DISCOUNT_TEXT'); ?></td>
+        <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="discount_text" name="discount_text" value="<?php echo $discount_text ?>"></td>
+    </tr>
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('DISCOUNT_PHOTO'); ?></td>
+        <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="discount_photo" name="discount_photo" value="<?php echo $discount_photo ?>"></td>
+    </tr>
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('DISCOUNT_VIDEO'); ?></td>
+        <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="discount_video" name="discount_video" value="<?php echo $discount_video ?>"></td>
+    </tr>
 <?php endif;?>
 <?php $tabControl->Buttons(); ?>
     <input type="hidden" name="Update" value="Y" />
