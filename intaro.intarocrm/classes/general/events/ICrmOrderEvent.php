@@ -350,7 +350,7 @@ class ICrmOrderEvent {
     */
     protected function getReviewDiscount($discountType) {
         if ( empty($discountType) || !( $discountType == self::$CRM_DISCOUNT_TEXT || $discountType == self::$CRM_DISCOUNT_PHOTO || $discountType == self::$CRM_DISCOUNT_VIDEO) ) {
-            throw new \RetailCrm\Exception\WrongParamException('discountType');
+            throw new \RetailCrm\Exception\WrongParamException('reviewType');
         } else {
             return COption::GetOptionString(self::$MODULE_ID, $discountType, 0);
         }
@@ -386,7 +386,7 @@ class ICrmOrderEvent {
     * 
     * @return boolean
     */
-    public function onBeforeCommentUpdate($userId, $productId, $data, $orderId=null) {
+    public function onBeforeCommentUpdate($userId, $productId, $reviewType, $orderId=null) {
         if( empty($userId) || $userId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('userId');
             return true;
@@ -396,17 +396,10 @@ class ICrmOrderEvent {
         } elseif( empty($productId) || $productId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('productId');
             return true;
-        } elseif( empty($data) || !is_array($data) ) {
-            throw new \RetailCrm\Exception\WrongParamException('data');
+        } elseif( empty($reviewType) ) {
+            throw new \RetailCrm\Exception\WrongParamException('reviewType');
             return true;
-        } elseif( !(
-                    isset($data['reviewText']) && 
-                    isset($data['reviewMark']) && 
-                    isset($data['reviewType'])
-                   ) ) {
-            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
-            return true;
-        } else {
+        }  else {
             if ($orderId == null) {
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
@@ -464,7 +457,11 @@ class ICrmOrderEvent {
         } elseif( empty($data) || !is_array($data) ) {
             throw new \RetailCrm\Exception\WrongParamException('data');
             return true;
-        } elseif( !isset($data['reviewType']) ) {
+        } elseif( !(
+                    isset($data['reviewText']) && 
+                    isset($data['reviewMark']) && 
+                    isset($data['reviewType'])
+                   ) ) {
             throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
             return true;
         } else {
