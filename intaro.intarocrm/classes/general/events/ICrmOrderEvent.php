@@ -19,7 +19,6 @@ class ICrmOrderEvent {
     protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     protected static $CRM_SITES_LIST = 'sites_list';
-    protected static $CRM_APPROVED_ORDERS = 'approved_orders';
     protected static $CRM_DISCOUNT_TEXT = 'discount_text';
     protected static $CRM_DISCOUNT_PHOTO = 'discount_photo';
     protected static $CRM_DISCOUNT_VIDEO = 'discount_video';
@@ -386,7 +385,7 @@ class ICrmOrderEvent {
     * 
     * @return boolean
     */
-    public function onBeforeCommentUpdate($userId, $productId, $reviewType, $orderId=null) {
+    public function onReviewApproved($userId, $productId, $data, $orderId=null) {
         if( empty($userId) || $userId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('userId');
             return true;
@@ -396,10 +395,14 @@ class ICrmOrderEvent {
         } elseif( empty($productId) || $productId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('productId');
             return true;
-        } elseif( empty($reviewType) ) {
-            throw new \RetailCrm\Exception\WrongParamException('reviewType');
+        } elseif( !(
+                    isset($data['reviewText']) && 
+                    isset($data['reviewMark']) && 
+                    isset($data['reviewType'])
+                   ) ) {
+            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
             return true;
-        }  else {
+        } else {
             if ($orderId == null) {
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
@@ -429,22 +432,44 @@ class ICrmOrderEvent {
                     return true;
                 }
             }
-            $query_result = COption::GetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, "");
-            if($query_result != "") {
-                $order_array = unserialize($query_result);
-            } else {
-                $order_array = array();
-            }
+			$api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+            $api = new RetailCrm\RestApi($api_host, $api_key);
+
             $data['reviewDiscount'] = self::getReviewDiscount('discount_' . $data['reviewType']);
             unset($data['reviewType']);
-            $order_array[] = array('USER_ID' => $userId, 'ORDER_ID' => $orderId, 'ELEMENT_ID' => $productId, 'DATA' => $data);
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_APPROVED_ORDERS, serialize($order_array));
+
+            $data['reviewApproved'] = 2;
+            $order = array(
+                'externalId' => $orderId,
+                'customFields' => $data        
+            );
+
+            try {
+                $api->orderEdit($order);
+            } catch (\RetailCrm\Exception\CurlException $e) {
+                throw new \RetailCrm\Exception\DispatchInterruptException();
+            }
+
+            $customer = array(
+                'externalId' => $userId,
+                'customFields' => array(
+                    'reviewDate' => time()
+                )
+            );
+            
+            try {
+                $api->customerEdit($customer);
+            } catch (\RetailCrm\Exception\CurlException $e) {
+                throw new \RetailCrm\Exception\DispatchInterruptException();
+            }
 
         }
         return true;
     }
 
-    public function onCommentAdd($userId, $productId, $data, $orderId = null) {
+    public function onReviewSend($userId, $productId, $data, $orderId = null) {
         if( empty($userId) || $userId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('userId');
             return true;
