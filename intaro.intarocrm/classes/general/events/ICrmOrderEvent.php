@@ -356,27 +356,6 @@ class ICrmOrderEvent {
         return 0;
     }
 
-    protected function getProductOffers($product_id) {
-        CModule::IncludeModule('iblock');
-        CModule::IncludeModule('catalog');
-
-        $result = array($product_id);
-        $iblock_info = CCatalogSKU::GetInfoByProductIBlock(2);
-
-        $dbOffers = CIBlockElement::GetList(
-            array('ID' => 'DESC'),
-            array('PROPERTY_' . $iblock_info['SKU_PROPERTY_ID'] => $product_id),
-            false,
-            false,
-            array('ID')
-        );
-
-        while ($dbOffer = $dbOffers->Fetch()) {
-            $result[] = $dbOffer['ID'];
-        }
-
-        return $result;
-    }
 
     /**
     * 
@@ -407,30 +386,18 @@ class ICrmOrderEvent {
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
                     $arOrder,
-                    array('USER_ID' => $userId),
+                    array('USER_ID' => $userId, 'PRODUCT_ID' => $productId),
                     false,
                     false,
                     array('ID')
                 );
 
-                while ($order = $dbOrders->Fetch()) {
-                    $order_ids[] = $order['ID'];
-                }
-
-                $basket = CSaleBasket::GetList(
-                    $arOrder,
-                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
-                    false,
-                    false,
-                    array('PRODUCT_ID', 'ORDER_ID')
-                )->Fetch();
-
-                if ( $basket ) {
-                    $orderId = $basket['ORDER_ID'];
-                } else {
+				if ( $order = $dbOrders->Fetch() ) {
+                    $orderId = $order['ID'];
+                }  else {
                     throw new \RetailCrm\Exception\WrongParamException('orderId','search');
                     return true;
-                }
+				}
             }
 			$api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
@@ -452,19 +419,6 @@ class ICrmOrderEvent {
                 throw new \RetailCrm\Exception\DispatchInterruptException();
             }
 
-            $customer = array(
-                'externalId' => $userId,
-                'customFields' => array(
-                    'reviewDate' => time()
-                )
-            );
-            
-            try {
-                $api->customerEdit($customer);
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                throw new \RetailCrm\Exception\DispatchInterruptException();
-            }
-
         }
         return true;
     }
@@ -476,7 +430,7 @@ class ICrmOrderEvent {
         } elseif( empty($productId) || $productId<1 ) {
             throw new \RetailCrm\Exception\WrongParamException('productId');
             return true;
-        } elseif( $orderId<1 && orderId != null) {
+        } elseif( $orderId<1 && $orderId != null) {
             throw new \RetailCrm\Exception\WrongParamException('orderId');
             return true;
         } elseif( empty($data) || !is_array($data) ) {
@@ -494,37 +448,26 @@ class ICrmOrderEvent {
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
                     $arOrder,
-                    array('USER_ID' => $userId),
+                    array('USER_ID' => $userId, 'PRODUCT_ID' => $productId),
                     false,
                     false,
                     array('ID')
                 );
 
-                while ($order = $dbOrders->Fetch()) {
-                    $order_ids[] = $order['ID'];
-                }
-
-                $basket = CSaleBasket::GetList(
-                    $arOrder,
-                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
-                    false,
-                    false,
-                    array('PRODUCT_ID', 'ORDER_ID')
-                )->Fetch();
-
-                if ( $basket ) {
-                    $orderId = $basket['ORDER_ID'];
-                } else {
+				if ( $order = $dbOrders->Fetch() ) {
+                    $orderId = $order['ID'];
+                }  else {
                     throw new \RetailCrm\Exception\WrongParamException('orderId','search');
                     return true;
-                }
+				}
+
             }
 
             $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
             $api = new RetailCrm\RestApi($api_host, $api_key);
-            $data['reviewProductId'] = self::getProductOffers($productId);
+            $data['reviewProductId'] = $productId;
             $data['reviewDiscount'] = self::getReviewDiscount('discount_' . $data['reviewType']);
             unset($data['reviewType']);
             $data['reviewApproved'] = 1;
