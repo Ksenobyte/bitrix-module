@@ -349,13 +349,38 @@ class ICrmOrderEvent {
     */
     protected function getReviewDiscount($discountType) {
         if ( empty($discountType) || !( $discountType == self::$CRM_DISCOUNT_TEXT || $discountType == self::$CRM_DISCOUNT_PHOTO || $discountType == self::$CRM_DISCOUNT_VIDEO) ) {
-            throw new \RetailCrm\Exception\WrongParamException('reviewType');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный тип скидки');
         } else {
             return COption::GetOptionString(self::$MODULE_ID, $discountType, 0);
         }
         return 0;
     }
 
+    protected function getProductOffers($product_id) {
+        CModule::IncludeModule('iblock');
+        CModule::IncludeModule('catalog');
+
+        $result = array($product_id);
+        $rsEl = CIBlockElement::GetByID($product_id);
+        if ($obEl = $rsEl->GetNext()) {
+        	$products_iblock_id = $obEl['IBLOCK_ID'];
+        }
+        $iblock_info = CCatalogSKU::GetInfoByProductIBlock($products_iblock_id);
+
+        $dbOffers = CIBlockElement::GetList(
+            array('ID' => 'DESC'),
+            array('PROPERTY_' . $iblock_info['SKU_PROPERTY_ID'] => $product_id),
+            false,
+            false,
+            array('ID')
+        );
+
+        while ($dbOffer = $dbOffers->Fetch()) {
+            $result[] = $dbOffer['ID'];
+        }
+
+        return $result;
+    }
 
     /**
     * 
@@ -366,38 +391,54 @@ class ICrmOrderEvent {
     */
     public function onReviewApproved($userId, $productId, $data, $orderId=null) {
         if( empty($userId) || $userId<1 ) {
-            throw new \RetailCrm\Exception\WrongParamException('userId');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID пользователя');
             return true;
-        } elseif( $orderId<1 && $orderId != null ) {
-            throw new \RetailCrm\Exception\WrongParamException('orderId');
+        } elseif ( $orderId<1 && $orderId != null ) {
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID заказа');
             return true;
         } elseif( empty($productId) || $productId<1 ) {
-            throw new \RetailCrm\Exception\WrongParamException('productId');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID продукта');
+            return true;
+        } elseif( empty($data) || !is_array($data) ) {
+            throw new \RetailCrm\Exception\WrongParamException('Массив не передан, либо имеет некорректный тип');
             return true;
         } elseif( !(
                     isset($data['reviewText']) && 
                     isset($data['reviewMark']) && 
                     isset($data['reviewType'])
                    ) ) {
-            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
+            throw new \RetailCrm\Exception\WrongParamException('Отсутствуют необходимые элементы массива');
             return true;
         } else {
             if ($orderId == null) {
+            	CModule::IncludeModule('sale');
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
                     $arOrder,
-                    array('USER_ID' => $userId, 'PRODUCT_ID' => $productId),
+                    array('USER_ID' => $userId),
                     false,
                     false,
                     array('ID')
                 );
 
-				if ( $order = $dbOrders->Fetch() ) {
-                    $orderId = $order['ID'];
-                }  else {
-                    throw new \RetailCrm\Exception\WrongParamException('orderId','search');
+                while ($order = $dbOrders->Fetch()) {
+                    $order_ids[] = $order['ID'];
+                }
+
+                $basket = CSaleBasket::GetList(
+                    $arOrder,
+                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId),
+                    false,
+                    false,
+                    array('PRODUCT_ID', 'ORDER_ID')
+                )->Fetch();
+
+                if ( $basket ) {
+                    $orderId = $basket['ORDER_ID'];
+                } else {
+                    throw new \RetailCrm\Exception\WrongParamException('Не найден заказ');
                     return true;
-				}
+                }
             }
 			$api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
@@ -416,7 +457,7 @@ class ICrmOrderEvent {
             try {
                 $api->orderEdit($order);
             } catch (\RetailCrm\Exception\CurlException $e) {
-                throw new \RetailCrm\Exception\DispatchInterruptException();
+                throw new \RetailCrm\Exception\DispatchInterruptException('Не удалось передать заказ в RetailCrm');
             }
 
         }
@@ -425,42 +466,54 @@ class ICrmOrderEvent {
 
     public function onReviewSend($userId, $productId, $data, $orderId = null) {
         if( empty($userId) || $userId<1 ) {
-            throw new \RetailCrm\Exception\WrongParamException('userId');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID пользователя');
             return true;
         } elseif( empty($productId) || $productId<1 ) {
-            throw new \RetailCrm\Exception\WrongParamException('productId');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID заказа');
             return true;
         } elseif( $orderId<1 && $orderId != null) {
-            throw new \RetailCrm\Exception\WrongParamException('orderId');
+            throw new \RetailCrm\Exception\WrongParamException('Некорректный ID продукта');
             return true;
         } elseif( empty($data) || !is_array($data) ) {
-            throw new \RetailCrm\Exception\WrongParamException('data');
+            throw new \RetailCrm\Exception\WrongParamException('Массив не передан, либо имеет некорректный тип');
             return true;
         } elseif( !(
                     isset($data['reviewText']) && 
                     isset($data['reviewMark']) && 
                     isset($data['reviewType'])
                    ) ) {
-            throw new \RetailCrm\Exception\WrongParamException('data', 'array_keys');
+            throw new \RetailCrm\Exception\WrongParamException('Отсутствуют необходимые элементы массива');
             return true;
         } else {
             if ($orderId == null) {
+            	CModule::IncludeModule('sale');
                 $arOrder = array('ID' => 'DESC');
                 $dbOrders = CSaleOrder::GetList(
                     $arOrder,
-                    array('USER_ID' => $userId, 'PRODUCT_ID' => $productId),
+                    array('USER_ID' => $userId),
                     false,
                     false,
                     array('ID')
                 );
 
-				if ( $order = $dbOrders->Fetch() ) {
-                    $orderId = $order['ID'];
-                }  else {
-                    throw new \RetailCrm\Exception\WrongParamException('orderId','search');
+                while ($order = $dbOrders->Fetch()) {
+                    $order_ids[] = $order['ID'];
+                }
+
+                $basket = CSaleBasket::GetList(
+                    $arOrder,
+                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
+                    false,
+                    false,
+                    array('PRODUCT_ID', 'ORDER_ID')
+                )->Fetch();
+
+                if ( $basket ) {
+                    $orderId = $basket['ORDER_ID'];
+                } else {
+                    throw new \RetailCrm\Exception\WrongParamException('Не найден заказ');
                     return true;
 				}
-
             }
 
             $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
@@ -479,7 +532,7 @@ class ICrmOrderEvent {
             try {
                 $api->orderEdit($order);
             } catch (\RetailCrm\Exception\CurlException $e) {
-                throw new \RetailCrm\Exception\DispatchInterruptException();
+                throw new \RetailCrm\Exception\DispatchInterruptException('Не удалось передать заказ в RetailCrm');
             }
         }
     return true;
