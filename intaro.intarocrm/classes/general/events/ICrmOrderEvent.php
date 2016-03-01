@@ -427,7 +427,7 @@ class ICrmOrderEvent {
 
                 $basket = CSaleBasket::GetList(
                     $arOrder,
-                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId),
+                    array('ORDER_ID' => $order_ids, 'PRODUCT_ID' => self::getProductOffers($productId)),
                     false,
                     false,
                     array('PRODUCT_ID', 'ORDER_ID')
